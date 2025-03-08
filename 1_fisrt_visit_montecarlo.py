@@ -2,8 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import random
-
-# missing policy visualisation, need to manually close the mathplotlib visualisation each time and i dont want it, missing argument parsing for custom dimenstions
+import argparse
 
 def create_gridworld(size):
     return np.zeros(size)
@@ -12,7 +11,7 @@ def choose_random_state(size):
     w, h = size
     return random.randint(0, w - 1), random.randint(0, h - 1)
 
-def visualize(grid, title="GridWorld", policy=None):
+def visualize(grid, title="GridWorld", policy=None, block=False):
     plt.figure(figsize=(6, 6))
     plt.imshow(grid, cmap="Blues_r", origin="upper")
     for i in range(grid.shape[0]):
@@ -23,7 +22,9 @@ def visualize(grid, title="GridWorld", policy=None):
                 plt.text(j, i, f"{grid[i, j]:.2f}", ha='center', va='center', color='black')
     plt.title(title)
     plt.colorbar()
-    plt.show()
+    plt.draw()
+    plt.pause(0.5)  # Mantiene la finestra aggiornata senza necessità di chiusura manuale
+    plt.clf()
 
 def dummy_explore(grid, episodes=10):
     size = grid.shape
@@ -33,9 +34,8 @@ def dummy_explore(grid, episodes=10):
             next_state = choose_random_state(size)
             grid[next_state] += random.uniform(-0.1, 0.1)  # Aggiorna valore random
             visualize(grid, title="Exploration Values")
-            time.sleep(0.5)  # Pausa per visualizzazione
 
-def main(size=(5,5)):
+def main(size):
     grid = create_gridworld(size)
     start_state = choose_random_state(size)
     terminal_state = choose_random_state(size)
@@ -44,8 +44,13 @@ def main(size=(5,5)):
     dummy_explore(grid)
     
     # Creazione di una policy fittizia per la visualizzazione
-    policy = np.full((size, size), "→")  # Esempio di policy con frecce
-    visualize(grid, title="Final State Values", policy=policy)
+    policy = np.full(size, "→")  # Esempio di policy con frecce
+    visualize(grid, title="Final State Values", policy=policy, block=True)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="GridWorld Monte Carlo Skeleton")
+    parser.add_argument("--width", type=int, default=5, help="Width of the GridWorld")
+    parser.add_argument("--height", type=int, default=5, help="Height of the GridWorld")
+    args = parser.parse_args()
+    
+    main((args.width, args.height))
