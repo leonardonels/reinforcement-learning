@@ -93,34 +93,6 @@ def distance_reward(state, terminal_state):
     reward = -distance * 0.1
     return reward
 
-def first_visit_montecarlo(grid, episodes, terminal_state):
-    returns = { (i, j): [] for i in range(grid.shape[0]) for j in range(grid.shape[1]) }
-
-    for _ in range(episodes):
-        last_policy = compute_policy(grid, terminal_state)
-        state = choose_random_state(grid.shape)
-        while state == terminal_state:
-            state = choose_random_state(grid.shape)
-
-        episode = []
-        while state != terminal_state:
-            reward = -0.1
-            episode.append((state, reward))
-            state = choose_next_state(grid, state)
-
-        visited_states = set()
-        for (s, reward) in episode:
-            if s not in visited_states:
-                returns[s].append(reward)
-                grid[s] = np.mean(returns[s])
-                visited_states.add(s)
-
-        new_policy = compute_policy(grid, terminal_state)
-        if np.array_equal(last_policy, new_policy):
-            break
-
-        print_grid(grid, new_policy, terminal_state)
-
 def first_visit_montecarlo(grid, episodes, terminal_state, gamma=0.9):
     returns = {}
     visits = {}
