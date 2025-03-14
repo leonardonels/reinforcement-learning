@@ -88,6 +88,52 @@ class WindyGridWorld:
         
         return self.state, self.reward, self.is_terminal(self.state)
 
+class SparseGridWorld:
+    def __init__(
+        self, 
+        size=(7, 10),
+        start=(3, 0),
+        goal=(3, 7),
+        wind=(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        reward=1
+    ):
+        self.size = size
+        self.start_state = start
+        self.terminal_state = goal
+        self.wind = wind
+        self.reward = reward
+        # Up, Down, Left, Right
+        self.actions = (0, 1, 2, 3)
+        self.reset()
+
+    def is_terminal(self, state):
+        return state == self.terminal_state
+    
+    def reset(self):
+        self.state = self.start_state
+        return self.state
+
+    def step(self, action, state=None):
+        if state is None:
+            state = self.state
+
+        if self.is_terminal(state):
+            return state, self.reward, True
+        
+        x, y = state
+        if action == 0: x = max(x - 1, 0)
+        if action == 1: x = min(x + 1, self.size[0] - 1)
+        if action == 2: y = max(y - 1, 0)
+        if action == 3: y = min(y + 1, self.size[1] - 1)
+        
+        # Apply wind effect
+        x = max(min(x - self.wind[y], self.size[0] - 1), 0)
+        
+        self.state = (x, y)
+        
+        return self.state, 0, self.is_terminal(self.state)
+    
+    
 def uniform_random_policy(state):
     """
     Uniform random policy: returns a random action.
@@ -404,7 +450,7 @@ def main(N):
     plot_policy(Q, env.size, N)
 
     # Run SARSA-lambda On-Policy Temporal Difference Learning - WIP
-    env = WindyGridWorld()
+    env = SparseGridWorld()
     Q, _ = sarsa_lambda(env, epsilon_greedy_policy, num_episodes=N, gamma=0.9, lamnda=0.6, alpha=0.1)
     print_grid(Q, env.size, N, env.start_state, env.terminal_state)
     plot_policy(Q, env.size, N)
