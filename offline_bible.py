@@ -383,25 +383,25 @@ def animate_value_function(value_snapshots):
 def main(N):
 
     # Run Monte Carlo Policy Evaluation
-    # env = GridWorld()
-    # _, value_snapshots = first_visit_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0.9, lamnda=0.6, alpha=0.1)
-    # plot_value_function(value_snapshots[-1], env.size, N)
+    env = GridWorld()
+    _, value_snapshots = first_visit_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0.9)
+    plot_value_function(value_snapshots[-1], env.size, N)
 
     # Run Every Visit Monte Carlo Policy Evaluation
-    # env = GridWorld()
-    # _, value_snapshots = every_visit_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0.9)
-    # plot_value_function(value_snapshots[-1], env.size, N)
+    env = GridWorld()
+    _, value_snapshots = every_visit_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0.9)
+    plot_value_function(value_snapshots[-1], env.size, N)
 
     # Run Temporal Difference Learning
-    # env = GridWorld()
-    # _, value_snapshots = td_lambda(env, uniform_random_policy, num_episodes=N, gamma=0.9, lamnda=0.6, alpha=0.1)
-    # plot_value_function(value_snapshots[-1], env.size, N)
+    env = GridWorld()
+    _, value_snapshots = td_lambda(env, uniform_random_policy, num_episodes=N, gamma=0.9, lamnda=0.6, alpha=0.1)
+    plot_value_function(value_snapshots[-1], env.size, N)
 
     # Run SARSA On-Policy Temporal Difference Learning
-    # env = WindyGridWorld()
-    # Q, _ = sarsa_on_policy(env, epsilon_greedy_policy, num_episodes=N, gamma=0.9, alpha=0.1)
-    # print_grid(Q, env.size, N, env.start_state, env.terminal_state)
-    # plot_policy(Q, env.size, N)
+    env = WindyGridWorld()
+    Q, _ = sarsa_on_policy(env, epsilon_greedy_policy, num_episodes=N, gamma=0.9, alpha=0.1)
+    print_grid(Q, env.size, N, env.start_state, env.terminal_state)
+    plot_policy(Q, env.size, N)
 
     # Run SARSA-lambda On-Policy Temporal Difference Learning - WIP
     env = WindyGridWorld()
