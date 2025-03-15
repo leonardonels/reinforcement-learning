@@ -320,7 +320,7 @@ def sarsa_on_policy(env, policy, num_episodes=500, gamma=1.0, alpha=0.1):
 
     return Q, value_snapshots
 
-def sarsa_lambda(env, policy, num_episodes=500, gamma=1.0, lamnda=0.6, alpha=0.1):
+def sarsa_lambda(env, policy, num_episodes=500, gamma=1.0, _lambda=0.6, alpha=0.1):
     Q = defaultdict(lambda: np.zeros(len(env.actions)))  # Q-function: Q(S, A) -> q(S, A)
     value_snapshots = []  # Store value function snapshots for animation
     
@@ -345,7 +345,7 @@ def sarsa_lambda(env, policy, num_episodes=500, gamma=1.0, lamnda=0.6, alpha=0.1
             # Update Q-values and eligibility traces
             for s, a in E.keys():
                 Q[s][env.actions.index(a)] += alpha * delta * E[(s, a)]
-                E[(s, a)] *= gamma * lamnda
+                E[(s, a)] *= gamma * _lambda
             
             # S <- S'; A <- A'
             state = next_state
