@@ -158,7 +158,7 @@ def first_visit_montecarlo(grid, episodes, terminal_state, gamma=0.9):
             print_grid(grid, policy=new_policy, terminal_state=terminal_state, episode=episode)
 
 
-
+# fix needed
 def first_visit_montecarlo_manhattan(grid, episodes, terminal_state):
     returns = { (i, j): [] for i in range(grid.shape[0]) for j in range(grid.shape[1]) }
 
@@ -181,11 +181,11 @@ def first_visit_montecarlo_manhattan(grid, episodes, terminal_state):
                 grid[s] = np.mean(returns[s])
                 visited_states.add(s)
 
-        if episode % 10 == 0:
-            new_policy = compute_policy(grid, terminal_state)
-            if np.array_equal(last_policy, new_policy):
-                break
-            print_grid(grid, policy=new_policy, terminal_state=terminal_state, episode=episode)
+        #if episode % 10 == 0:
+        #    new_policy = compute_policy(grid, terminal_state)
+        #    if np.array_equal(last_policy, new_policy):
+        #        break
+        #    print_grid(grid, policy=new_policy, terminal_state=terminal_state, episode=episode)
 
 def every_visit_montecarlo(grid, episodes=100, terminal_state=None):
     for episode in range(episodes):
@@ -218,7 +218,7 @@ def main(size, episodes):
     print(f"Terminal State: {terminal_state}")
     time.sleep(1)
     
-    first_visit_montecarlo(grid, episodes, terminal_state=terminal_state, gamma=0.9)
+    first_visit_montecarlo_manhattan(grid, episodes, terminal_state=terminal_state)
     
     policy = compute_policy(grid, terminal_state)
     print_grid(grid, policy, terminal_state)
