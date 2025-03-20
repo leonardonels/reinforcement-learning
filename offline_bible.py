@@ -248,7 +248,7 @@ def every_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0):
 
     return V, value_snapshots
 
-def td_lambda(env, policy, num_episodes=500, gamma=1.0, lamnda=0.6, alpha=0.1):
+def td_lambda(env, policy, num_episodes=500, gamma=1.0, _lambda=0.6, alpha=0.1):
     V = defaultdict(float)   # value function: S -> v(S)
     value_snapshots = []  # Store value function snapshots for animation
 
@@ -274,7 +274,7 @@ def td_lambda(env, policy, num_episodes=500, gamma=1.0, lamnda=0.6, alpha=0.1):
 
             # Update eligibility traces
             for s in E.keys():
-                E[s] *= gamma * lamnda
+                E[s] *= gamma * _lambda
 
             E[state] += 1.0
             
