@@ -12,12 +12,6 @@ from collections import defaultdict
 
 
 ## envs:
-#
-#    “S” for Start tile
-#    “G” for Goal tile
-#    “F” for frozen tile
-#    “H” for a tile with a hole
-
 class GridWorldEnv(gym.Env):
 
     def __init__(self, size: int = 4, terminal_state = np.array([3, 3], dtype=np.int32)):
@@ -172,8 +166,6 @@ def print_value(V, actions=None, terminal_state=None, episode=0):
 
 
 ## algorithms:
-# first_visit_montecarlo_manhattan
-
 """first visit montecarlo prediction (planning), policy evaluation, entire episode must be generated"""
 def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0, visualize=False):
     V = defaultdict(float)
