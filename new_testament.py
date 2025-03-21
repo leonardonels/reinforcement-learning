@@ -106,6 +106,13 @@ def generate_episode(env, policy):
     
     return episode
 
+def manhattan_distance(state, terminal_state, alpha=-.1):
+    i, j = state
+    t_i, t_j = terminal_state
+    distance = abs(i - t_i) + abs(j - t_j)  # Manhattan distance
+
+    reward = - alpha * distance
+    return reward
 
 ## plotting:
 def plot_value_function(V, size=(4,4), episode=0):
@@ -167,8 +174,8 @@ def print_value(V, actions=None, terminal_state=None, episode=0):
 ## algorithms:
 # first_visit_montecarlo_manhattan
 
-"""first_visit_montecarlo_prediction (planning), policy evaluation, episode must be generated"""
-def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0):
+"""first visit montecarlo prediction (planning), policy evaluation, entire episode must be generated"""
+def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0, visualize=False):
     V = defaultdict(float)
     returns = defaultdict(list)
     value_snapshots = []
@@ -197,12 +204,89 @@ def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0):
             snapshot[i, j] = value
         value_snapshots.append(snapshot.copy())
 
-        print_value(V, terminal_state=env._target_location, episode=num_episode_+1)
+        if visualize:
+            print_value(V, terminal_state=env._target_location, episode=num_episode_+1)
+
+    return V, V, value_snapshots
+
+"""first visit montecarlo prediction (planning) with the manhattan distance as reward, policy evaluation, entire episode must be generated"""
+def manhattan_mc_prediction(env, policy, num_episodes=500, gamma=1.0, alpha=1.0, visualize=False):
+    V = defaultdict(float)
+    returns = defaultdict(list)
+    value_snapshots = []
+
+    for num_episode_ in range(num_episodes):
+
+        episode_returns = {}
+        episode = generate_episode(env, policy)
+        
+        G = 0
+        
+        for state, action, reward in reversed(episode):
+            state = tuple(state)
+            reward = manhattan_distance(state, tuple(env._target_location), alpha=alpha)
+
+            G = reward + gamma * G
+            episode_returns[state] = G
+
+        for state, discounted_return in episode_returns.items():
+            returns[state].append(discounted_return)
+            
+        V[state] = np.mean(returns[state])
+
+        # Save the value function snapshot at every episode
+        snapshot = np.zeros((env.size, env.size))
+        for (i, j), value in V.items():
+            snapshot[i, j] = value
+        value_snapshots.append(snapshot.copy())
+
+        if visualize:
+            print_value(V, terminal_state=env._target_location, episode=num_episode_+1)
+
+    return V, V, value_snapshots
+
+"""every visit montecarlo prediction (planning), policy evaluation, entire episode must be generated"""
+def every_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0, visualize=False):
+    V = defaultdict(float)
+    returns = defaultdict(list)
+    value_snapshots = []
+
+    for num_episode_ in range(num_episodes):
+
+        episode_returns = {}
+        n_episode_returns = {}
+        episode = generate_episode(env, policy)
+        
+        G = 0
+        
+        for state, _ , reward in reversed(episode):
+            state = tuple(state)
+
+            if state not in episode_returns:
+                episode_returns[state] = 0
+                n_episode_returns[state]= 0
+
+            G = reward + gamma * G
+            episode_returns[state] = ((episode_returns[state]*n_episode_returns[state])+G)/(n_episode_returns[state]+1)
+            episode_returns[state] += 1
 
 
-    return V, value_snapshots
+        for state, discounted_return in episode_returns.items():
+            returns[state].append(discounted_return)
+            
+        V[state] = np.mean(returns[state])
+        
+        # Save the value function snapshot at every episode
+        snapshot = np.zeros((env.size, env.size))
+        for (i, j), value in V.items():
+            snapshot[i, j] = value
+        value_snapshots.append(snapshot.copy())
 
-# every_visit_montecarlo
+        if visualize:
+            print_value(V, terminal_state=env._target_location, episode=num_episode_+1)
+
+
+    return V, V, value_snapshots
 
 # td_0
 
@@ -218,9 +302,8 @@ def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0):
 
 
 def main(N):
-    # Run first visit Monte Carlo Policy Evaluation
     env = GridWorldEnv(size=4)
-    _ , value_snapshots = first_visit_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0.9)
+    _ , _ , value_snapshots = manhattan_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0)
     plot_value_function(value_snapshots[-1], env.size, N)
 
 
