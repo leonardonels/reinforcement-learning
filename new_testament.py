@@ -18,15 +18,13 @@ from collections import defaultdict
 #    “F” for frozen tile
 #    “H” for a tile with a hole
 
-
-# simple_grid
 class GridWorldEnv(gym.Env):
 
-    def __init__(self, size: int = 4):
+    def __init__(self, size: int = 4, terminal_state = np.array([3, 3], dtype=np.int32)):
         self.size = size
 
         self._agent_location = np.array([-1, -1], dtype=np.int32)
-        self._target_location = np.array([-1, -1], dtype=np.int32)
+        self._target_location = terminal_state
 
         # Observations are dictionaries with the agent's and the target's location.
         # Each location is encoded as an element of {0, ..., `size`-1}^2
@@ -47,16 +45,12 @@ class GridWorldEnv(gym.Env):
             3: np.array([0, -1]),  # down
         }
 
+    #reset the environmnet at teh start of an episode
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
-        #reset the environmnet at teh start of an episode
 
-        self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
-
-        self._target_location = self._agent_location
-        while np.array_equal(self._target_location, self._agent_location):
-            self._target_location = self.np_random.integers(
-                0, self.size, size=2, dtype=int
-            )
+        self._agent_location = np.random.randint(0, self.size, size=2)
+        while np.array_equal(self._agent_location, self._target_location):
+            self._agent_location = self.np_random.integers(0, self.size, size=2, dtype=int)
         return self._agent_location
 
     def step(self, action):
@@ -151,18 +145,35 @@ def print_grid(Q, size=(7, 10), episode=0, start_state=None, terminal_state=None
         print(f"{row_values}    {row_policy}")
     print("\n")
 
+def print_value(V, actions=None, terminal_state=None, episode=0):
+    V[tuple(terminal_state)] = 0.
+    max_i = max(k[0] for k in V.keys()) + 1
+    max_j = max(k[1] for k in V.keys()) + 1
+    
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print(f"Terminal State: {terminal_state}\n")
+    print("GridWorld State Values")
+    
+    for i in range(max_i):
+        row_values = " ".join(f"{V[(i, j)]:6.2f}" if (i, j) in V else "{:6}".format('') for j in range(max_j))
+        print(f"{row_values}")
+    
+    if not episode:
+        print("\nUpdating...\n")
+    else:
+        print(f"\nUpdating...{episode}\n")
+
+
 ## algorithms:
 # first_visit_montecarlo_manhattan
 
-# first_visit_montecarlo
-    # prediction (planning)
-        # policy evaluation
-            # episode must be generated
+"""first_visit_montecarlo_prediction (planning), policy evaluation, episode must be generated"""
 def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0):
-    V = defaultdict(float)   # value function: S -> v(S)
-    returns = defaultdict(list)  # return statistics
+    V = defaultdict(float)
+    returns = defaultdict(list)
+    value_snapshots = []
 
-    for _ in range(num_episodes):
+    for num_episode_ in range(num_episodes):
 
         episode_returns = {}
         episode = generate_episode(env, policy)
@@ -170,17 +181,26 @@ def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0):
         G = 0
         
         for state, action, reward in reversed(episode):
+            state = tuple(state)
 
             G = reward + gamma * G
             episode_returns[state] = G
-
 
         for state, discounted_return in episode_returns.items():
             returns[state].append(discounted_return)
             
         V[state] = np.mean(returns[state])
 
-    return V
+        # Save the value function snapshot at every episode
+        snapshot = np.zeros((env.size, env.size))
+        for (i, j), value in V.items():
+            snapshot[i, j] = value
+        value_snapshots.append(snapshot.copy())
+
+        print_value(V, terminal_state=env._target_location, episode=num_episode_+1)
+
+
+    return V, value_snapshots
 
 # every_visit_montecarlo
 
@@ -200,8 +220,8 @@ def first_visit_mc_prediction(env, policy, num_episodes=500, gamma=1.0):
 def main(N):
     # Run first visit Monte Carlo Policy Evaluation
     env = GridWorldEnv(size=4)
-    V = first_visit_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0.9)
-    plot_value_function(V, env.size, N)
+    _ , value_snapshots = first_visit_mc_prediction(env, uniform_random_policy, num_episodes=N, gamma=0.9)
+    plot_value_function(value_snapshots[-1], env.size, N)
 
 
 if __name__ == "__main__":
